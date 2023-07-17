@@ -1,5 +1,7 @@
 const Articles = require('../models/articleModel')
-import { StatusCodes } from 'http-status-codes'
+const StatusCodes = require('http-status-codes')
+
+const { BadRequest, NotFoundError } = require("../errors");
 
 const getAllArticles = async (req, res, next) => {
     const articles = await Articles.find({createdBy: req.user.user.id})
@@ -10,7 +12,7 @@ const getArticle = async (req, res) => {
     const {user: {userId},params: {id:articleId} } = req.params
     const article = await Articles.findOne({id: articleId, createdBy: userId})
     if (!article){
-
+        throw new NotFoundError(`No job with id ${articleId}`);
     }
     res.status(StatusCodes.OK).json({article})
 }

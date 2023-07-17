@@ -1,28 +1,30 @@
 const User = require('../models/userModel');
+const { StatusCodes } = require("http-status-codes");
+const { BadRequest, NotFoundError } = require("../errors");
 
 const signUp = async (req, res, next) => {
     const user = await User.create({...req.body})
     const token = user.createJWT()
-    res.status(200).send.json({user:{name:user.name}, token:token})
+    res.status(StatusCodes.OK).json({user:{name:user.name}, token:token})
 }
 
 const login = async (req, res, next) => {
     const {email, password} = req.body
     if (!email || !password) {
-
+        throw new BadRequest("Please provide email and password");
     }
 
     const user = await User.findOne({ email: email})
     if (!user) {
-
+        throw new UnauthenticatedError("Invalid Credentials");
     }
 
     const isPasswordConfirmed = await user.comparePassword(password)
     if (!user){
-
+        throw new UnauthenticatedError("Invalid Credentials");
     }
 
-    return res.status(200).json({
+    return res.status(StatusCodes.OK).json({
         accessToken: generateJwt(user, role),
         email,
         role,

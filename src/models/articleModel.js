@@ -1,4 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+const mongoose = require('mongoose');
+const Schema = require('mongoose')
+;
 
 /** Article schema defined with validation rules */
 const ArticleSchema = mongoose.Schema(
@@ -45,4 +47,4 @@ const ArticleSchema = mongoose.Schema(
 );
 
 /** Article model to be used for interacting with our collection. Refer to mongoose docs for the difference between a schema {@link https://mongoosejs.com/docs/guide.html} and a model {@link https://mongoosejs.com/docs/models.html} */
-export const ArticleModel = mongoose.model("Article", ArticleSchema);
+module.exports = mongoose.model("Article", ArticleSchema);

@@ -1,11 +1,12 @@
-import { express } from "express";
+const express = require('express')
 
 const router = express.Router()
 const {
     getArticle, getAllArticles, createArticles
-} = require()
+} = require('../controllers/article')
 
-router.route('/').post(createArticles).get(getAllArticles)
+router.route('/').post(createArticles)
+router.get(getAllArticles)
 router.route('/:id').get(getArticle)
 
 module.exports = router
