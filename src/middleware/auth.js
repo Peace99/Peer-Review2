@@ -1,12 +1,12 @@
 const User = require('../models/userModel');
 const jwt = require("jsonwebtoken")
-const {UnauthenticatedError} = require("../errors/unauthorized")
+const Unauthenticated  = require('../errors/unauthorized')
 require("dotenv").config();
 
 const auth = async(req, res, next) => {
     const authHeader = req.headers.authorization
     if (!authHeader || !authHeader.startsWith("Bearer")) {
-        throw new UnauthenticatedError("Invalid")
+        throw new Unauthenticated("Invalid")
     }
     const token = authHeader.split(":")[1]
 
@@ -18,7 +18,7 @@ const auth = async(req, res, next) => {
     req.user = { userId: payload.userId, name: payload.name };
     next();
   } catch (error) {
-    throw new UnauthenticatedError("Authentication invalid");
+    throw new Unauthenticated("Authentication invalid");
   }
 };
 

@@ -2,10 +2,10 @@ const express = require('express')
 
 const router = express.Router()
 const {
-    getArticle, getAllArticles, createArticles
+    getArticle, getAllArticles, createArticle
 } = require('../controllers/article')
 
-router.route('/').post(createArticles)
+router.route('/').post(createArticle)
 router.get(getAllArticles)
 router.route('/:id').get(getArticle)
 
