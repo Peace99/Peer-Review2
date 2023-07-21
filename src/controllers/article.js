@@ -1,34 +1,60 @@
 const Articles = require('../models/articleModel')
-const StatusCodes = require('http-status-codes')
-
+const { StatusCodes } = require('http-status-codes')
 const { BadRequest, NotFoundError } = require("../errors");
+// const multer = require('multer');
+const cloudinary = require('../middleware/cloudinary')
 
 const getAllArticles = async (req, res, next) => {
-    const articles = await Articles.find({createdBy: req.user.user.id})
+    try{
+    const articles = await Articles.find({userId: req.user.user.id})
     res.status(StatusCodes.OK).json({articles})
+    } catch(err){
+        console.log(err)
+        next(err)
+    }
 }
 
 const getArticle = async (req, res) => {
-    const {user: {userId},params: {id:articleId} } = req.params
-    const article = await Articles.findOne({id: articleId, createdBy: userId})
+    try {
+    const {user: {userId}, params: {id:articleId} } = req.params
+    const article = await Articles.findOne({_id: articleId, userId})
     if (!article){
         throw new NotFoundError(`No article with id ${articleId}`);
     }
     res.status(StatusCodes.OK).json({article})
+} catch (err) {
+    console.log(err);
+}
 }
 
-const createArticle = async (req, res) => {
-    req.body.createdBy = req.user.userId
-    const {typeOfReview, title, abstract, keywords} = req.body
-    const article = await submitArticle({
-        typeOfReview,
-        authorId: userId,
+const submitArticle = async (req, res) => {
+    try{
+    const userId = req.user.userId
+    const {typeOfReview, title, abstract, fieldOfResearch, keywords, url} = req.body
+    let fileUrl = '';
+    if (req.file){
+        const result = await cloudinary.uploader.upload(req.file.path);
+        fileUrl = result.secure_url
+
+        const fs = require('fs')
+        fs.unlinkSync(req.file.path)
+    }
+    const article = await Articles.create({
+       typeOfReview,
+        userId,
         title,
         abstract,
+        fieldOfResearch,
         keywords, 
-        url: removeSpaces(req?.file?.originalname),
+        url,
+        fileUrl
     })
-    res.status(StatusCodes).json({ article})
+    res.status(StatusCodes.OK).json({ article})
+}
+    catch(err) {
+    console.log(err)
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" })
+}
 }
 
-module.exports = { getAllArticles, getArticle, createArticle}
+module.exports = { getAllArticles, getArticle, submitArticle}

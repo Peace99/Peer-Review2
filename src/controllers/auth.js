@@ -10,7 +10,8 @@ const signUp = async (req, res, next) => {
 }
 
 const login = async (req, res, next) => {
-    const {email, password} = req.body
+    try {
+    const {email, password, role} = req.body
     if (!email || !password) {
         throw new BadRequest("Please provide email and password");
     }
@@ -25,14 +26,11 @@ const login = async (req, res, next) => {
         throw new Unauthenticated("Invalid Credentials");
     }
 
-    return res.status(StatusCodes.OK).json({
-        accessToken: generateJwt(user, role),
-        email,
-        role,
-        fieldOfResearch,
-        name: user.name,
-        id: user.id
-    })
+    const token = user.createJWT();
+    res.status(StatusCodes.OK).json({ user: { name: user.name }, token });
+}   catch(error){
+    console.log(error)
+}
 
 }
 

@@ -1,7 +1,7 @@
 require('dotenv')
 require('express-async-errors')
 const express = require('express')
-const app = express()
+const app = new express()
 
 //connect to database
 const connectDB = require('./src/database/connectDB')
@@ -15,10 +15,14 @@ const articles = require("./src/routers/article")
 const notFoundMiddleware = require("./src/middleware/not-found");
 const errorHandlerMiddleware = require("./src/middleware/error-handler");
 
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
+
 //routes
 app.get('/', (req, res) => {res.send("peer review")});
-app.use('api/v1/auth', auth)
+app.use('/api/v1/auth', auth)
 app.use('/api/v1/articles', user, articles)
+
 
 app.use(notFoundMiddleware)
 app.use(errorHandlerMiddleware)

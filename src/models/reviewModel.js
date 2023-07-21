@@ -1,10 +1,17 @@
-import mongoose, {Schema} from "mongoose";
+const mongoose = require('mongoose');
+const Schema = require('mongoose')
 
 const reviewSchema = mongoose.Schema({
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
     ref: "Reviewer",
+  },
+
+  articleId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Article",
   },
 
   question1: {
@@ -36,7 +43,13 @@ const reviewSchema = mongoose.Schema({
     type: String,
     required: true,
   },
+
+  status: {
+    type: String,
+    enum: ["pending", "reviewed"],
+    required: true,
+  },
 });
 
 
-export const reviewModel = mongoose.model('Review', reviewSchema)
+ module.exports = mongoose.model('Review', reviewSchema)

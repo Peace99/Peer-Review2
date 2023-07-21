@@ -1,19 +1,19 @@
 const mongoose = require('mongoose');
-const Schema = require('mongoose')
-;
+const Schema = require('mongoose');
+const reviewModel  = require('../models/reviewModel');
 
 /** Article schema defined with validation rules */
 const ArticleSchema = mongoose.Schema(
   {
-   userId: {
+    userId: {
       type: Schema.Types.ObjectId,
       required: true,
       ref: "Author",
     },
 
-    url: {
+    fileUrl: {
       type: String,
-      required: true,
+      default: null
     },
 
     title: {
@@ -25,20 +25,28 @@ const ArticleSchema = mongoose.Schema(
       type: String,
       required: true,
     },
-    
+
     fieldOfResearch: {
       type: String,
       required: true,
     },
 
     keywords: {
-        type: String,
-        required: true,
-    },
-   
-    status: {
-      type: Array,
+      type: String,
       required: true,
+    },
+
+    status: {
+      type: String,
+      enum: ['pending', 'in-review', 'completed'],
+      default: 'pending',
+      required: true,
+    },
+
+    review: {
+      type: Schema.Types.ObjectId,
+      ref: 'Review',
+      default: null,
     },
   },
   {
