@@ -6,20 +6,12 @@ const { StatusCodes } = require("http-status-codes");
 const { BadRequest } = require("../errors");
 const Unauthenticated = require('../errors/unauthorized')
 
-async function hash(rawString) {
-  return bcrypt.hash(rawString, 10);
-}
-
-async function compare(rawString, hash) {
-  return bcrypt.compare(rawString, hash);
-}
 
 const signUp = async (req, res, next) => {
     // const user = await User.create({...req.body})
     // const token = user.createJWT()
     try {
         const {title, name, email, role, password, fieldOfResearch, department} = req.body
-        const hashedPassword = await hash(password);
         const authorExists = await author.exists({ email });
         const reviewerExists = await reviewer.exists({ email });
         const editorExists = await editor.exists({ email });
@@ -37,7 +29,7 @@ const signUp = async (req, res, next) => {
                 email,
                 fieldOfResearch,
                 department,
-                password: hashedPassword
+                password
             })
         }
         else if (role === "reviewer"){
@@ -47,7 +39,7 @@ const signUp = async (req, res, next) => {
               email,
               fieldOfResearch,
               department,
-              password: hashedPassword,
+              password
             });
         }
         else {
@@ -55,7 +47,7 @@ const signUp = async (req, res, next) => {
               title,
               name,
               email,
-              password: hashedPassword,
+              password
             });
         }
         await newUser.save();
@@ -69,6 +61,7 @@ const signUp = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
         console.log("Received login request for email:", email);
         let user = null;
         const findQuery = { email };
@@ -94,12 +87,11 @@ const login = async (req, res, next) => {
             throw new BadRequest("Please provide email and password");
         }
 
-        const passwordMatch = await user.comparePassword(password);
-
+        const passwordMatch = await user.comparePassword(hashedPassword);
         if (!passwordMatch) {
             throw new Unauthenticated("Invalid Credentials");
         }
-        console.log("Password confirmed:", isPasswordConfirmed);
+        console.log("Password confirmed:", passwordMatch);
 
         const token = user.createJWT();
         console.log("Generated JWT token:", token);
