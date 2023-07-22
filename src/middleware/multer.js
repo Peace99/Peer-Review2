@@ -23,3 +23,4 @@ const storage = multer.diskStorage({
 
 // Create the multer instance
 const upload = multer({ storage });
+module.exports = upload;

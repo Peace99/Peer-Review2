@@ -38,7 +38,7 @@ const ArticleSchema = mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'in-review', 'completed'],
+      enum: ['pending', 'in-review', 'accepted', 'rejected', ],
       default: 'pending',
       required: true,
     },
