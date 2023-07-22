@@ -4,7 +4,7 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 // const Schema = require('mongoose')
 
-const userSchema = mongoose.Schema({
+const authorSchema = mongoose.Schema({
   title: String,
   email: String, // String is shorthand for {type: String}
   name: String,
@@ -15,13 +15,13 @@ const userSchema = mongoose.Schema({
   
 });
 
-userSchema.pre("save", async function (next) {
+authorSchema.pre("save", async function (next) {
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
   next();
 });
 
-userSchema.methods.createJWT = function () {
+authorSchema.methods.createJWT = function () {
   return jwt.sign(
     { userId: this._id, name: this.name },
     `${process.env.JWT_SECRET}`,
@@ -31,9 +31,9 @@ userSchema.methods.createJWT = function () {
   );
 };
 
-userSchema.methods.comparePassword = async function (candidatePassword) {
+authorSchema.methods.comparePassword = async function (candidatePassword) {
   const isMatch = await bcrypt.compare(candidatePassword, this.password);
   return isMatch;
 };
 
-module.exports = mongoose.model('Users', userSchema);
+module.exports = mongoose.model('Users', authorSchema);

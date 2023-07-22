@@ -1,12 +1,12 @@
 const axios = require("axios");
-const Review = require("../models/reviewModel"); // Rename to avoid conflict
+const Review = require("../models/reviewModel"); 
 const Article = require("../models/articleModel");
 const { StatusCodes } = require("http-status-codes");
 const { BadRequest, NotFoundError } = require("../errors");
 
 const getAllReviews = async (req, res, next) => {
   try {
-    const reviews = await Review.find({ createdBy: req.user.user.id }); // Rename to avoid conflict
+    const reviews = await Review.find({ createdBy: req.user.id }); // Rename to avoid conflict
     res.status(StatusCodes.OK).json({ reviews });
   } catch (err) {
     next(err);
