@@ -35,4 +35,4 @@ reviewerSchema.methods.comparePassword = async function (candidatePassword) {
   return isMatch;
 };
 
-module.exports = mongoose.model("Users", reviewerSchema);
+module.exports = mongoose.model("Reviewer", reviewerSchema);
