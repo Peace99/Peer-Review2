@@ -1,8 +1,7 @@
 const Articles = require('../models/articleModel')
 const { StatusCodes } = require('http-status-codes')
 const { BadRequest, NotFoundError } = require("../errors");
-
-// const cloudinary = require('../middleware/cloudinary')
+const cloudinary = require('../middleware/cloudinary')
 
 const getAllArticles = async (req, res, next) => {
     try{
@@ -34,11 +33,11 @@ const submitArticle = async (req, res) => {
     const {typeOfReview, title, abstract, fieldOfResearch, keywords, url} = req.body
     let fileUrl = '';
     if (req.file){
-        // const result = await cloudinary.uploader.upload(req.file.path);
-        fileUrl = req.file.path;
+        const result = await cloudinary.uploader.upload(req.file.path);
+        fileUrl = result.secure_url;
 
-        // const fs = require('fs')
-        // fs.unlinkSync(req.file.path)
+        const fs = require('fs')
+        fs.unlinkSync(req.file.path)
     }
     const article = await Articles.create({
        typeOfReview,

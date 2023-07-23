@@ -6,11 +6,11 @@ const { BadRequest, NotFoundError } = require("../errors");
 
 const getAllReviews = async (req, res, next) => {
   try {
-    const reviews = await Review.find({ createdBy: req.user.id }); // Rename to avoid conflict
+    const reviews = await Review.find({ createdBy: req.user.id }); 
     res.status(StatusCodes.OK).json({ reviews });
   } catch (err) {
     next(err);
-  }
+  } 
 };
 
 const getReview = async (req, res, next) => {
@@ -51,20 +51,6 @@ const getReviewedArticles = async (req, res, next) => {
   }
 };
 
-const submitReviews = async (req, res, next) => {
-  try {
-    const reviewerResponses = req.body;
-    const review = new Review(reviewerResponses); // Rename to avoid conflict
-    await review.save();
-
-    res
-      .status(StatusCodes.CREATED)
-      .json({ message: "Review saved successfully." });
-  } catch (err) {
-    next(new BadRequest("Error saving the review."));
-  }
-};
-
 const reviewerResponses = {
   // ... reviewerResponses object with all the answers
 };
@@ -77,6 +63,24 @@ axios
   .catch((error) => {
     console.error(error);
   });
+
+const submitReviews = async (req, res, next) => {
+  try {
+    const reviewerResponses = req.body;
+    const review = new Review(reviewerResponses);
+    const reviewId = reviewerResponses.reviewId
+    await review.save();
+    await Review.findByIdAndUpdate(reviewId, { status: "reviewed" });
+    res
+      .status(StatusCodes.CREATED)
+      .json({ message: "Review saved successfully." });
+  } catch (error) {
+    console.log(error)
+    next(new BadRequest("Error saving the review."));
+  }
+};
+
+
 
 module.exports = {
   getAllReviews,

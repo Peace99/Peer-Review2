@@ -46,7 +46,7 @@ const ArticleSchema = mongoose.Schema(
     review: {
       type: Schema.Types.ObjectId,
       ref: 'Review',
-      default: null,
+      default: 'pending',
     },
   },
   {

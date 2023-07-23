@@ -6,13 +6,12 @@ require("dotenv").config();
 
 const authorSchema = mongoose.Schema({
   title: String,
-  email: String, // String is shorthand for {type: String}
+  email: String, 
   name: String,
   password: String,
   department: String,
   role: String,
   fieldOfResearch: String,
-  
 });
 
 authorSchema.pre("save", async function (next) {

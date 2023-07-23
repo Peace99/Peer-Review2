@@ -24,13 +24,14 @@ const auth = async(req, res, next) => {
       }
 
       let user;
+      console.log("Payload.sub:", payload.userId);
 
       if (role === "author") {
-        user = await author.findOne({ _id: payload.sub });
+        user = await author.findOne({ _id: payload.userId });
       } else if (role === "reviewer") {
-        user = await reviewer.findOne({ _id: payload.sub });
+        user = await reviewer.findOne({ _id: payload.userId });
       } else {
-        user = await editor.findOne({ _id: payload.sub });
+        user = await editor.findOne({ _id: payload.userId });
       }
 
       if (!user) {
@@ -38,8 +39,6 @@ const auth = async(req, res, next) => {
       }
 
       req.user = user;
-
-        // Add the payload data to req.user for further access if needed
         req.user.userId = payload.userId;
         req.user.name = payload.name;
         req.user.role = payload.role;
