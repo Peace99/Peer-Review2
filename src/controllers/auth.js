@@ -61,7 +61,8 @@ const signUp = async (req, res, next) => {
 const login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
-        const hashedPassword = await bcrypt.hash(password, 10);
+        console.log(password);
+        //const hashedPassword = await bcrypt.hash(password, 10);
         console.log("Received login request for email:", email);
         let user = null;
         const findQuery = { email };
@@ -87,16 +88,17 @@ const login = async (req, res, next) => {
             throw new BadRequest("Please provide email and password");
         }
 
-        const passwordMatch = await user.comparePassword(hashedPassword);
-        if (!passwordMatch) {
+        const passwordMatch = await user.comparePassword(password);
+        // console.log("Password from login:", password);
+        // console.log("Hashed password from the database:", user.password);
+        // console.log("Password match result:", passwordMatch);
+        if (!user) {
             throw new Unauthenticated("Invalid Credentials");
         }
-        console.log("Password confirmed:", passwordMatch);
 
         const token = user.createJWT();
-        console.log("Generated JWT token:", token);
         res.status(StatusCodes.OK).json({
-            user: { name: user.name, email, fieldOfResearch: user.fieldOfResearch, id: user.id },
+            user: { name: user.name, email, role, fieldOfResearch: user.fieldOfResearch, id: user.id },
             token
         });
     } catch (error) {

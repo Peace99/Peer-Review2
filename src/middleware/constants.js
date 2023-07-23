@@ -1,3 +1,5 @@
 const roles = [ "author", "reviewer", "editor"];
 
-module.exports = roles
+module.exports = {roles}
+
+

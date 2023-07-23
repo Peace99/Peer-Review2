@@ -20,7 +20,7 @@ const storage = multer.diskStorage({
     cb(null, true);
   },
 });
-
+//removeSpaces(file.originalname)
 // Create the multer instance
 const upload = multer({ storage });
 module.exports = upload;
