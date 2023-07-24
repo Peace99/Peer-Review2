@@ -8,7 +8,7 @@ const getAllReviews = async (req, res, next) => {
   try {
     const reviews = await Review.find({ createdBy: req.user.id }); 
     res.status(StatusCodes.OK).json({ reviews });
-  } catch (err) {
+  } catch (err) { 
     next(err);
   } 
 };

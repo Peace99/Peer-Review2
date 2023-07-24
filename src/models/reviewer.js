@@ -2,11 +2,12 @@ const mongoose = require("mongoose");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-// const Schema = require('mongoose')
+const Schema = require('mongoose')
 
 const reviewerSchema = mongoose.Schema({
+  _id: Schema.Types.ObjectId,
   title: String,
-  email: String, // String is shorthand for {type: String}
+  email: String, 
   name: String,
   password: String,
   department: String,
