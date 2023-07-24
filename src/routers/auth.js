@@ -1,16 +1,30 @@
 const express = require('express');
 const router = express.Router();
+const {auth, requireEditor} = require('../middleware/auth')
 
-const { login, signUp, getAuthorProfile, getEditorProfile, getReviewerProfile, getReviewersByField, getUsersById, getUsersByRole } = require("../controllers/auth");
+
+const {
+  login,
+  signUp,
+  getAuthorProfile,
+  getReviewerProfile,
+  getRoles,
+  getReviewersByField,
+  getUsersById
+} = require("../controllers/auth");
+const editor = require('../controllers/auth')
 
 router.post('/signup', signUp)
 router.post('/login', login)
 router.get('/')
-router.get('/author/profile', getAuthorProfile)
-router.get('/reviewer/profile', getReviewerProfile);
-router.get('/editor/profile', getEditorProfile)
-router.get('/reviewers/:fieldOfResearch', getReviewersByField);
-router.get('/:id', getUsersById)
-router.get('/getUser', getUsersByRole)
+router.get('/authorprofile', auth, getAuthorProfile)
+router.get('/reviewerprofile', auth, getReviewerProfile);
+router.get('/editorprofile', auth, editor.getEditorProfile)
+router.get("/:roles", auth, getRoles);
+router.get("/:fieldOfResearch", auth, requireEditor, getReviewersByField);
+router.get("/:id", auth, requireEditor, getUsersById);
+
+
+
 
 module.exports = router

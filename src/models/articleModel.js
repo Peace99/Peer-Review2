@@ -1,7 +1,56 @@
 const mongoose = require('mongoose');
 const Schema = require('mongoose');
-const reviewModel  = require('../models/reviewModel');
+// const ReviewSchema = require('../models/reviewModel')
 
+const ReviewSchema = new mongoose.Schema({
+  userId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Reviewer",
+  },
+
+  articleId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: "Article",
+  },
+
+  question1: {
+    type: String,
+    required: true,
+  },
+
+  question2: {
+    type: String,
+    required: true,
+  },
+
+  question3: {
+    type: String,
+    required: true,
+  },
+
+  question4: {
+    type: String,
+    required: true,
+  },
+
+  recommendation: {
+    type: String,
+    required: true,
+  },
+
+  comment: {
+    type: String,
+    required: true,
+  },
+
+  status: {
+    type: String,
+    enum: ["pending", "reviewed"],
+    default: "pending",
+  },
+});
 /** Article schema defined with validation rules */
 const ArticleSchema = mongoose.Schema(
   {
@@ -13,7 +62,7 @@ const ArticleSchema = mongoose.Schema(
 
     fileUrl: {
       type: String,
-      default: null
+      default: null,
     },
 
     title: {
@@ -38,15 +87,14 @@ const ArticleSchema = mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['pending', 'in-review', 'accepted', 'rejected', ],
-      default: 'pending',
+      enum: ["pending", "in-review", "assigned", "accepted", "rejected"],
+      default: "pending",
       required: true,
     },
 
     review: {
-      type: Schema.Types.ObjectId,
-      ref: 'Review',
-      default: 'pending',
+      type: ReviewSchema,
+      default: null,
     },
   },
   {

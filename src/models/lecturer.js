@@ -5,13 +5,43 @@ require("dotenv").config();
 // const Schema = require('mongoose')
 
 const authorSchema = mongoose.Schema({
-  title: String,
-  email: String, 
-  name: String,
-  password: String,
-  department: String,
-  role: String,
-  fieldOfResearch: String,
+  name: {
+    type: String,
+    required: true
+  },
+  title: {
+    type: String,
+    required: true
+  },
+
+  email:{
+    type: String,
+    required: true,
+    match: [
+      /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/,
+      "Please provide a valid email",
+    ],
+  },
+
+  password: {
+   type: String,
+   required: true
+  },
+
+  department: {
+    type: String,
+    required: true
+  },
+
+  role: {
+    type: String,
+  required: true
+},
+
+  fieldOfResearch: {
+    type: String,
+  required: true
+}
 });
 
 authorSchema.pre("save", async function (next) {

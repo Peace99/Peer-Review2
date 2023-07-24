@@ -1,6 +1,7 @@
 const author = require('../models/lecturer');
 const reviewer = require('../models/reviewer');
 const editor = require('../models/editor');
+const helper = require('../helpers/helper')
 const { StatusCodes } = require("http-status-codes");
 const { BadRequest } = require("../errors");
 const Unauthenticated = require('../errors/unauthorized')
@@ -150,85 +151,105 @@ const getEditorProfile = async (req, res,) => {
     }
 }
 
-const getUsersByRole = async (req, res, next) => {
-    try {
-    const { role } = req.params;
-    // Check if the provided role is valid (author, reviewer, or editor)
-    if (role !== 'author' && role !== 'reviewer' && role !== 'editor') {
-      return res.status(StatusCodes.BAD_REQUEST).json({ error: 'Invalid role. Accepted roles are: author, reviewer, editor' });
+
+const getRoles = async (req, res, next) => {
+  try {
+    const  role  = req.params.role;
+    console.log(role)
+
+    if (!role || (role !== "author" && role !== "reviewer")) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        error: "Invalid role. Accepted roles are: author, reviewer",
+      });
+    }
+
+    const { editorRole } = req.user;
+    console.log(editorRole);
+    if (editorRole !== "editor") {
+      return res
+        .status(StatusCodes.UNAUTHORIZED)
+        .json({ error: "Only editors can access this endpoint" });
     }
 
     let users;
-    if (role === 'author') {
+    if (role === "author") {
       users = await author.find();
-    } else if (role === 'reviewer') {
+    } else if (role === "reviewer") {
       users = await reviewer.find();
-    } else {
-      users = await editor.find();
     }
 
     if (!users || users.length === 0) {
-      return res.status(StatusCodes.NOT_FOUND).json({ message: 'No users found for the provided role' });
+      return res
+        .status(StatusCodes.NOT_FOUND)
+        .json({ message: "No users found for the provided role" });
     }
-    // Respond with the users who have the specified role
     res.json({ role, users });
   } catch (error) {
-    // Handle any errors that occurred during the database query or processing
-    res.status(500).json({ error: 'An error occurred while fetching users by role' });
-  }
-}
-
-const getUsersById = async (req, res, next) => {
-     try {
-    const { userId } = req.params; // Assuming the user ID is passed as a parameter in the request
-
-    // Check if the provided user ID is valid
-    if (!isValidUserId(userId)) {
-      return res.status(400).json({ error: 'Invalid user ID format' });
-    }
-
-    let user;
-    // Determine which model to query based on the user's role
-    if (req.user.role === 'author') {
-      user = await author.findById(userId);
-    } else if (req.user.role === 'reviewer') {
-      user = await reviewer.findById(userId);
-    } else if (req.user.role === 'editor') {
-      user = await editor.findById(userId);
-    }
-
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    res.json(user);
-  } catch (error) {
-    // Handle any errors that occurred during the database query or processing
-    res.status(500).json({ error: 'An error occurred while fetching the user by ID' });
+    console.log(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while fetching users by role" });
   }
 };
 
-// Helper function to validate user ID format (you can customize this based on your ID format)
 const isValidUserId = (userId) => {
-  // Example: Check if the user ID is a valid MongoDB ObjectId
-  const ObjectId = require('mongoose').Types.ObjectId;
-  return ObjectId.isValid(userId);
+  const userIdRegex = /^[0-9a-fA-F]{24}$/;
+  // const ObjectId = require('mongoose').Types.ObjectId;
+  return userIdRegex.test(userId);
+  // ObjectId.isValid(userId);
 };
 
 
 const getReviewersByField = async (req, res, next) => {
-    try {
-      const { fieldOfResearch } = req.params;
-      const reviewers = await reviewer.find({ fieldOfResearch });
-      if (!reviewers || reviewers.length === 0) {
-        return res.status(404).json({message: "No reviewers found for the given field of research",
-        });
-      }
-      // Respond with the reviewers associated with the specified field of research
-      res.json({ fieldOfResearch, reviewers });
-    } catch (error) {res.status(500).json({error:"An error occurred while fetching reviewers by field of research",
-        });
+  try {
+    const { fieldOfResearch } = req.params;
+    const reviewers = await reviewer.find({ fieldOfResearch });
+    if (!reviewers) {
+      return res
+        .status(404)
+        .json({ message: "No reviewers found for the given field " });
     }
-}
+    // Respond with the reviewers associated with the specified field of research
+    res.json({ fieldOfResearch, reviewers });
+  } catch (error) {
+    console.log(error);
+    res
+      .status(500)
+      .json({
+        error:
+          "An error occurred while fetching reviewers by field of research",
+      });
+  }
+};
 
-module.exports = {signUp, login, getAuthorProfile, getEditorProfile, getReviewerProfile, getReviewersByField, getUsersById, getUsersByRole}
+const getUsersById = async (req, res, next) => {
+     try {
+       const userId = req.params.id;
+       if (!isValidUserId(userId)) {
+         return res.status(400).json({ error: "Invalid user ID format" });
+       }
+       // Helper function to validate user ID format (you can customize this based on your ID format)
+       let user = await helper(userId);
+       if (!user) {
+         return res.status(404).json({ message: "User not found" });
+       }
+
+       res.json(user);
+     } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: 'An error occurred while fetching the user by ID' });
+  }
+};
+
+
+
+
+
+
+
+
+
+
+
+
+module.exports = {signUp, login, getAuthorProfile, getEditorProfile, getReviewerProfile, getRoles, getUsersById, getReviewersByField }

@@ -3,7 +3,8 @@ const reviewer = require('../models/reviewer');
 const editor = require('../models/editor');
 const roles = require('./constants');
 const jwt = require("jsonwebtoken")
-const Unauthenticated  = require('../errors/unauthorized')
+const Unauthenticated  = require('../errors/unauthorized');
+const { StatusCodes } = require('http-status-codes');
 require("dotenv").config();
 
 const auth = async(req, res, next) => {
@@ -51,4 +52,13 @@ const auth = async(req, res, next) => {
 
 };
 
-module.exports = auth;
+const requireEditor = (req, res, next) => {
+  if (req.user.role !== "editor"){
+    res.status(StatusCodes.FORBIDDEN).json({message: "User is not allowed"})
+  }
+  else {
+    next()
+  }
+}
+
+module.exports = {auth, requireEditor};

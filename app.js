@@ -5,10 +5,12 @@ const app = new express()
 
 //connect to database
 const connectDB = require('./src/database/connectDB')
-const user = require('./src/middleware/auth')
+const { auth, requireEditor} = require('./src/middleware/auth')
 
 //routers
-const auth = require('./src/routers/auth')
+const authRouter = require('./src/routers/auth')
+const roleRouter = require("./src/routers/auth");
+const reviewerRouter = require('./src/routers/auth')
 const articles = require("./src/routers/article")
 const reviews = require("./src/routers/reviews")
 
@@ -21,9 +23,15 @@ app.use(express.json());
 
 //routes
 app.get('/', (req, res) => {res.send("peer review")});
-app.use('/api/v1/auth', auth)
-app.use('/api/v1/articles', user, articles)
-app.use('/api/v1/reviews', user, reviews)
+app.use('/api/v1/auth', authRouter)
+app.use('/api/v1/articles', auth, articles)
+app.use('/api/v1/reviews', auth, reviews)
+app.use("/api/v1/profile", authRouter);
+app.use("/api/v1/role", roleRouter);
+app.use("/api/v1/reviewers", reviewerRouter);
+app.use('/api/v1/users', authRouter)
+
+
 
 
 app.use(notFoundMiddleware)
