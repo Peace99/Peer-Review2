@@ -44,17 +44,11 @@ const ArticleSchema = mongoose.Schema(
       required: true,
     },
 
-    // review: {
-    //   type: ReviewSchema,
-    //   default: null,
-    // },
+
   },
   {
     timestamps: true,
   }
 );
 
-
-
-/** Article model to be used for interacting with our collection. Refer to mongoose docs for the difference between a schema {@link https://mongoosejs.com/docs/guide.html} and a model {@link https://mongoosejs.com/docs/models.html} */
 module.exports = mongoose.model("Article", ArticleSchema);

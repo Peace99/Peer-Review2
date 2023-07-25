@@ -1,12 +1,25 @@
-var SibApiV3Sdk = require("sib-api-v3-sdk");
+const nodemailer = require("nodemailer");
+require("dotenv").config();
 const Articles = require("../models/articleModel");
 const Reviewers = require("../models/reviewer");
+const Authors = require("../models/lecturer");
 const { StatusCodes } = require("http-status-codes");
 const { BadRequest, NotFoundError } = require("../errors");
 const cloudinary = require("../middleware/cloudinary");
-SibApiV3Sdk.ApiClient.instance.authentications["api-key"].apiKey =
-  "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";
+const axios = require("axios");
+const https = require("https");
+const fs = require("fs");
 
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: true,
+    auth: {
+    user: process.env.EMAIL_ADDRESS,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
 
 const getAllArticles = async (req, res, next) => {
   try {
@@ -21,14 +34,51 @@ const getAllArticles = async (req, res, next) => {
 const getArticle = async (req, res) => {
   try {
     const { id: articleId } = req.params;
-    const { userId } = req.user;
-    const article = await Articles.findOne({ _id: articleId, userId });
+
+    // const { userId } = req.user;
+    const article = await Articles.findOne({ _id: articleId });
     if (!article) {
       throw new NotFoundError(`No article with id ${articleId}`);
     }
     res.status(StatusCodes.OK).json({ article });
+  } catch (error) {
+    console.log("the error", error);
+  }
+};
+const declineArticle = async (req, res) => {
+  try {
+    const { id: articleId } = req.params;
+
+    await Articles.updateOne(
+      { _id: articleId },
+      { $set: { status: "rejected" } }
+    );
+    const article = await Articles.findOne({ _id: articleId });
+
+    if (!article) {
+      return res.status(404).json({ error: "Article not found" });
+    }
+    const author = await Authors.findOne({ _id: article.userId });
+
+    if (!author || !author.email) {
+      return res.status(500).json({ error: "Author email not found" });
+    }
+
+    const emailData = {
+      to:  author.email ,
+      from: { email: "mhizeirene@gmail.com", name: "Revisar" },
+      subject: "Paper Rejection Notification",
+      html: `<p>Dear ${author.name},</p><p>We regret to inform you that your paper titled "${article.title}" has been rejected for publication.</p><p>Regards,</p><p>Editor</p>`,
+    };
+
+    const info = await transporter.sendMail(emailData);
+
+    console.log("Sendinblue API response:", info);
+
+    res.json({ message: "Paper rejected and email sent to the author" });
   } catch (err) {
-    console.log(err);
+    console.error("Error in rejecting the paper:", err);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 };
 
@@ -41,8 +91,6 @@ const submitArticle = async (req, res) => {
     if (req.file) {
       const result = await cloudinary.uploader.upload(req.file.path);
       fileUrl = result.secure_url;
-
-      const fs = require("fs");
       fs.unlinkSync(req.file.path);
     }
     const article = await Articles.create({
@@ -87,52 +135,65 @@ const articleStatus = async (req, res) => {
 const assignArticles = async (req, res) => {
   try {
     const { articleId, reviewers } = req.body;
-    const article = await Articles.findOne({ articleId: articleId });
+    const article = await Articles.findOne({ _id: articleId });
     console.log(articleId);
     if (!article) {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ error: "article not found" });
     }
-    const reviewerList = await Reviewers.find({ _id: { $in: reviewers } });
+    const reviewerList = await Reviewers.find({
+      email: { $in: reviewers.email },
+    });
     const reviewersEmail = reviewerList.map((reviewer) => reviewer.email);
 
     await Articles.updateOne(
       { _id: article._id },
       { $set: { reviewers: reviewersEmail } }
     );
-
-    await sendEmails(reviewersEmail, article);
-    res.json({ message: "Reviewers assigned and emails sent successfully" });
-  } catch (err) {
-    console.error("Error in assigning reviewers and sending emails:", err);
-    res.status(500).json({ message: "Internal Server Error" });
+    for (const reviewerEmail of reviewersEmail) {
+    await sendEmail(article._id, reviewerEmail);
+    }
   }
+  catch (err){
+    console.error(err);
+  }
+}
 
-  async function sendEmails(emails, article) {
-    const sendinblueClient = new SibApiV3Sdk.TransactionalEmailsApi()
+async function sendEmail(article, reviewerEmail) {
+  try {
+    const articlePath = await fetchArticlePathFromDatabase(article._Id); 
 
-      const emailData = {
-      to: emails.map((email) => ({ email })),
-      from: { email: "mhizeirene@gmail.com", name: "Revisar" }, // Replace with your email address and name
-      subject: "Review Request for Paper",
-      html: `<p>Dear Reviewer,</p><p>You are invited to review the paper titled "${article.title}". Please find the paper attached.</p><p>Regards,</p><p>Editor</p>`,
-      attachment: [
+    const mailOptions = {
+      from: process.env.EMAIL_ADDRESS,
+      to: reviewerEmail,
+      subject: 'Article Review Request',
+      text: `Dear Reviewer,\n\nWe would like to request you to review our article titled "${article.title}".\n\nPlease find the article attached.\n\nBest regards,\nThe Review Team`,
+      attachments: [
         {
-          name: "Peer Review", // Replace with the actual filename of the paper
-          content: "Base64_encoded_paper_content", // Replace with the Base64-encoded content of the paper
+          filename: `${article.title}`, 
+          path: `${article.fileUrl}`, 
         },
       ],
     };
 
-  try {
-    const response = await sendinblueClient.send_email(emailData);
-    console.log("Sendinblue API response:", response);
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ', info.messageId);
   } catch (error) {
-    console.error("Error sending email via Sendinblue:", error);
+    console.error('Error sending email:', error);
   }
-
 }
+async function fetchArticlePathFromDatabase(articleId){
+    try {
+        const article = await Articles.findOne({id: articleId})
+        return article
+    } catch (error) {
+        console.log(error)
+    }
 }
 
-module.exports = { getAllArticles, getArticle, submitArticle, articleStatus};
+
+
+
+module.exports = {getAllArticles,getArticle,submitArticle,articleStatus,assignArticles,declineArticle,
+};
