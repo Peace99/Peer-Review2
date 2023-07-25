@@ -1,3 +1,4 @@
+const cors = require('cors')
 require('dotenv')
 require('express-async-errors')
 const express = require('express')
@@ -18,6 +19,7 @@ const reviews = require("./src/routers/reviews")
 const notFoundMiddleware = require("./src/middleware/not-found");
 const errorHandlerMiddleware = require("./src/middleware/error-handler");
 
+app.use(cors())
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 

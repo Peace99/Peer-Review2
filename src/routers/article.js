@@ -5,14 +5,16 @@ const {auth, requireEditor } = require('../middleware/auth')
 
 const router = express.Router()
 const {
-    getArticle, getAllArticles, submitArticle, assignArticles, declineArticle
-} = require('../controllers/article')
+    getArticle, getAllArticles, submitArticle, assignArticles, declineArticle, articleStatus, articleStatusCount} = require('../controllers/article')
 
 
 router.route('/')
 router.post('/submitArticle', upload.single('file'), submitArticle)
 router.post('/assign', auth, assignArticles)
 router.get('/getAllArticles', getAllArticles)
+router.get('/status', auth, articleStatus)
+router.get('/count', auth, articleStatusCount)
+router.get('/')
 router.route('/:id').get(auth, getArticle)
 router.route('/:id').post(auth, declineArticle)
  

@@ -132,6 +132,61 @@ const articleStatus = async (req, res) => {
   }
 };
 
+const articleStatusCount = async (req, res) => {
+ const { status } = req.query; // Get the 'status' query parameter
+ try {
+    if (!status) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Status parameter is required" });
+    }
+
+    // Check if the provided status is valid
+    const validStatusValues = ["rejected", "in-review", "pending", "accepted"];
+    if (!validStatusValues.includes(status)) {
+      return res.status(StatusCodes.BAD_REQUEST).json({ error: "Invalid status value" });
+    }
+
+    // Fetch the count of articles with the provided status
+    const query = { status };
+    const count = await Articles.countDocuments(query);
+
+    res.status(StatusCodes.OK).json({ statusCount: count });
+  } catch (err) {
+    console.log(err);
+    res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: "Internal server error" });
+  }
+}
+
+const articleStatusCountById = async (req, res) => {
+  try {
+    const { userId, status } = req.query; 
+
+    if (!userId) {
+      return res
+        .status(StatusCodes.BAD_REQUEST)
+        .json({ error: "userId parameter is required" });
+    }
+
+    const query = {};
+    if (userId) {
+      query.userId = userId;
+    }
+    if (status) {
+      query.status = status;
+    }
+
+    const count = await Articles.countDocuments(query);
+
+    res.status(StatusCodes.OK).json({ count });
+  } catch (err) {
+    console.log(err);
+    res
+      .status(StatusCodes.INTERNAL_SERVER_ERROR)
+      .json({ error: "Internal server error" });
+  }
+};
+
+
+
 const assignArticles = async (req, res) => {
   try {
     const { articleId, reviewers } = req.body;
@@ -195,5 +250,5 @@ async function fetchArticlePathFromDatabase(articleId){
 
 
 
-module.exports = {getAllArticles,getArticle,submitArticle,articleStatus,assignArticles,declineArticle,
+module.exports = {getAllArticles,getArticle,submitArticle,articleStatus,assignArticles,declineArticle, articleStatusCount, articleStatusCountById
 };

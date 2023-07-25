@@ -101,7 +101,7 @@ const login = async (req, res, next) => {
 
         const token = user.createJWT();
         res.status(StatusCodes.OK).json({
-            user: { name: user.name, email, role, fieldOfResearch: user.fieldOfResearch, id: user.id },
+            user: { name: user.name, title:user.title, email, role, fieldOfResearch: user.fieldOfResearch,department:user.department, id: user.id },
             token
         });
     } catch (error) {
