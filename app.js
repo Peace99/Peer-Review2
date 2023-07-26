@@ -27,6 +27,7 @@ app.use(express.json());
 app.get('/', (req, res) => {res.send("peer review")});
 app.use('/api/v1/auth', authRouter)
 app.use('/api/v1/articles', auth, articles)
+app.use('/api/v1/articles/user', auth, articles)
 app.use('/api/v1/reviews', auth, reviews)
 app.use("/api/v1/profile", authRouter);
 app.use("/api/v1/role", roleRouter);

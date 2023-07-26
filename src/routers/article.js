@@ -5,7 +5,7 @@ const {auth, requireEditor } = require('../middleware/auth')
 
 const router = express.Router()
 const {
-    getArticle, getAllArticles, submitArticle, assignArticles, declineArticle, articleStatus, articleStatusCount} = require('../controllers/article')
+    getArticle, getAllArticles, getArticlesByUserId, submitArticle, assignArticles, declineArticle, articleStatus, articleStatusCount} = require('../controllers/article')
 
 
 router.route('/')
@@ -15,7 +15,9 @@ router.get('/getAllArticles', getAllArticles)
 router.get('/status', auth, articleStatus)
 router.get('/count', auth, articleStatusCount)
 router.get('/')
+router.get('/:userId', auth, getArticlesByUserId)
 router.route('/:id').get(auth, getArticle)
 router.route('/:id').post(auth, declineArticle)
+
  
 module.exports = router

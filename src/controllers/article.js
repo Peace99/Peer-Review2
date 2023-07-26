@@ -45,6 +45,16 @@ const getArticle = async (req, res) => {
     console.log("the error", error);
   }
 };
+
+const getArticlesByUserId = async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const articles = await Articles.find({ userId });
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+  }
+}
 const declineArticle = async (req, res) => {
   try {
     const { id: articleId } = req.params;
@@ -59,7 +69,6 @@ const declineArticle = async (req, res) => {
       return res.status(404).json({ error: "Article not found" });
     }
     const author = await Authors.findOne({ _id: article.userId });
-
     if (!author || !author.email) {
       return res.status(500).json({ error: "Author email not found" });
     }
@@ -114,7 +123,8 @@ const submitArticle = async (req, res) => {
 
 const articleStatus = async (req, res) => {
   try {
-    const { status } = req.query; // Get the 'status' query parameter
+    const { status } = req.query; 
+    // Get the 'status' query parameter
 
     // Check if the 'status' query parameter is provided
     // If provided, filter articles based on the 'status'; otherwise, retrieve all articles
@@ -190,6 +200,10 @@ const articleStatusCountById = async (req, res) => {
 const assignArticles = async (req, res) => {
   try {
     const { articleId, reviewers } = req.body;
+    await Articles.updateOne(
+      { _id: articleId },
+      { $set: { status: "in-review" } }
+    );
     const article = await Articles.findOne({ _id: articleId });
     console.log(articleId);
     if (!article) {
@@ -250,5 +264,6 @@ async function fetchArticlePathFromDatabase(articleId){
 
 
 
-module.exports = {getAllArticles,getArticle,submitArticle,articleStatus,assignArticles,declineArticle, articleStatusCount, articleStatusCountById
+module.exports = {getAllArticles, getArticle, submitArticle, articleStatus, assignArticles,
+   declineArticle, articleStatusCount, articleStatusCountById, getArticlesByUserId
 };
