@@ -10,16 +10,17 @@ const axios = require("axios");
 const https = require("https");
 const fs = require("fs");
 
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    port: 587,
-    secure: true,
-    auth: {
-    user: process.env.EMAIL_ADDRESS,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+// const transporter = nodemailer.createTransport({
+//     service: "gmail",
+//     host: "smtp.gmail.com",
+//     port: 587,
+//     secure: true,
+//     auth: {
+//     user: process.env.EMAIL_ADDRESS,
+//     pass: process.env.EMAIL_PASSWORD,
+//   },
+// });
+
 
 const getAllArticles = async (req, res, next) => {
   try {
@@ -55,6 +56,51 @@ const getArticlesByUserId = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 }
+
+
+// Assuming you have a 'Reviewer' Mongoose model defined
+// const reviewersWithMatchingExpertise = await Reviewers.find({ expertise: req.body.fieldOfResearch });
+// const selectedReviewers = reviewersWithMatchingExpertise.slice(0, 2);
+
+const assign = async (req, res) => {
+  try { 
+    const articleId = req.params.articleId;
+    const reviewerIds = req.body.reviewerIds;
+    await Articles.updateOne(
+      { _id: articleId },
+      { $set: { status: "in-review" } }
+    );
+    const article = await Articles.findById(articleId);
+
+    if (!article) {
+      return res.status(404).json({ message: "Article not found" });
+    }
+
+    // Find the reviewers by their IDs (This part may be handled in a separate endpoint or middleware)
+    const reviewers = await Reviewers.find({ _id: { $in: reviewerIds } });
+
+    if (reviewers.length !== reviewerIds.length) {
+      return res
+        .status(404)
+        .json({ message: "One or more reviewers not found" });
+    }
+    article.assignedReviewers = reviewerIds;
+    await article.save();
+
+    for (const reviewerId of reviewerIds) {
+      const reviewer = await Reviewers.findById(reviewerId);
+      if (reviewer) {
+        reviewer.papersAssigned.push(article._id);
+        await reviewer.save();
+      }
+    }
+    res.json({ message: "Reviewers assigned successfully" });
+  } catch (err) {
+    console.error("Error assigning reviewers:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
+
 const declineArticle = async (req, res) => {
   try {
     const { id: articleId } = req.params;
@@ -69,27 +115,38 @@ const declineArticle = async (req, res) => {
       return res.status(404).json({ error: "Article not found" });
     }
     const author = await Authors.findOne({ _id: article.userId });
-    if (!author || !author.email) {
-      return res.status(500).json({ error: "Author email not found" });
+    if (!author) {
+      return res.status(500).json({ error: "Author not found" });
     }
-
-    const emailData = {
-      to:  author.email ,
-      from: { email: "mhizeirene@gmail.com", name: "Revisar" },
-      subject: "Paper Rejection Notification",
-      html: `<p>Dear ${author.name},</p><p>We regret to inform you that your paper titled "${article.title}" has been rejected for publication.</p><p>Regards,</p><p>Editor</p>`,
-    };
-
-    const info = await transporter.sendMail(emailData);
-
-    console.log("Sendinblue API response:", info);
-
-    res.json({ message: "Paper rejected and email sent to the author" });
+res.json({ message: "Paper rejected and email sent to the author" });
   } catch (err) {
     console.error("Error in rejecting the paper:", err);
     res.status(500).json({ error: "Internal Server Error" });
   }
-};
+}
+
+//get papers assigned to reviewers
+const assignedPapers = async (req, res) => {
+  try {
+    const reviewerId = req.params.reviewerId;
+
+    // Find the reviewer by their ID
+    const reviewer = await Reviewer.findById(reviewerId);
+
+    if (!reviewer) {
+      return res.status(404).json({ message: "Reviewer not found" });
+    }
+
+    // Find the papers assigned to the reviewer
+    const assignedPaperIds = reviewer.papersAssigned;
+    const assignedPapers = await Articles.find({ _id: { $in: assignedPaperIds } });
+
+    res.json({ assignedPapers });
+  } catch (err) {
+    console.error("Error fetching papers assigned to reviewer:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 const submitArticle = async (req, res) => {
   try {
@@ -197,73 +254,10 @@ const articleStatusCountById = async (req, res) => {
 
 
 
-const assignArticles = async (req, res) => {
-  try {
-    const { articleId, reviewers } = req.body;
-    await Articles.updateOne(
-      { _id: articleId },
-      { $set: { status: "in-review" } }
-    );
-    const article = await Articles.findOne({ _id: articleId });
-    console.log(articleId);
-    if (!article) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ error: "article not found" });
-    }
-    const reviewerList = await Reviewers.find({
-      email: { $in: reviewers.email },
-    });
-    const reviewersEmail = reviewerList.map((reviewer) => reviewer.email);
-
-    await Articles.updateOne(
-      { _id: article._id },
-      { $set: { reviewers: reviewersEmail } }
-    );
-    for (const reviewerEmail of reviewersEmail) {
-    await sendEmail(article._id, reviewerEmail);
-    }
-  }
-  catch (err){
-    console.error(err);
-  }
-}
-
-async function sendEmail(article, reviewerEmail) {
-  try {
-    const articlePath = await fetchArticlePathFromDatabase(article._Id); 
-
-    const mailOptions = {
-      from: process.env.EMAIL_ADDRESS,
-      to: reviewerEmail,
-      subject: 'Article Review Request',
-      text: `Dear Reviewer,\n\nWe would like to request you to review our article titled "${article.title}".\n\nPlease find the article attached.\n\nBest regards,\nThe Review Team`,
-      attachments: [
-        {
-          filename: `${article.title}`, 
-          path: `${article.fileUrl}`, 
-        },
-      ],
-    };
-
-    const info = await transporter.sendMail(mailOptions);
-    console.log('Email sent: ', info.messageId);
-  } catch (error) {
-    console.error('Error sending email:', error);
-  }
-}
-async function fetchArticlePathFromDatabase(articleId){
-    try {
-        const article = await Articles.findOne({id: articleId})
-        return article
-    } catch (error) {
-        console.log(error)
-    }
-}
 
 
 
 
-module.exports = {getAllArticles, getArticle, submitArticle, articleStatus, assignArticles,
-   declineArticle, articleStatusCount, articleStatusCountById, getArticlesByUserId
+module.exports = {getAllArticles, getArticle, submitArticle, articleStatus, assign,
+   declineArticle, articleStatusCount, articleStatusCountById, getArticlesByUserId, assignedPapers
 };

@@ -32,6 +32,7 @@ app.use('/api/v1/reviews', auth, reviews)
 app.use("/api/v1/profile", authRouter);
 app.use("/api/v1/role", roleRouter);
 app.use("/api/v1/reviewers", reviewerRouter);
+// app.use('/api/v1/reviewers/:reviewerId/article', reviewerRouter);
 app.use('/api/v1/users', authRouter)
 
 

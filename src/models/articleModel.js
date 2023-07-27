@@ -12,9 +12,22 @@ const ArticleSchema = mongoose.Schema(
       ref: "Author",
     },
 
-    fileUrl: {
+    // reviewType: {
+    //   type: String,
+    //   enum: ["double-blind", "single-blind"],
+    //   required: true,
+    // },
+
+    journalType: {
       type: String,
-      default: null,
+      enum: [
+        "Science",
+        "Medicine",
+        "Finance",
+        "Agriculture",
+        "Art",
+        "Education",
+      ],
     },
 
     title: {
@@ -36,15 +49,35 @@ const ArticleSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    fileUrl: {
+      type: String,
+      default: null,
+    },
 
     status: {
       type: String,
-      enum: ["pending", "in-review", "assigned", "accepted", "rejected"],
+      enum: [
+        "pending",
+        "in-review",
+        "reviewed",
+        "assigned",
+        "accepted",
+        "rejected",
+      ],
       default: "pending",
       required: true,
     },
 
+    assignedReviewers: {
+      type: [mongoose.Schema.Types.ObjectId],
+      required: true,
+      ref: "Reviewer",
+    },
 
+    review: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "Review",
+    },
   },
   {
     timestamps: true,

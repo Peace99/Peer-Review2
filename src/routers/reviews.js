@@ -12,7 +12,7 @@ router.get("/pending-reviews", auth, getPendingReviews);
 router.get("/reviewed-articles", auth, getReviewedArticles);
 router.post("/submitReview", auth, submitReviews);
 router.get("/reviews", auth, getAllReviews);
-router.get("/reviews/:id", auth, getReview);
+router.get("/:id", auth, getReview);
 
 
 // router.route("/").post(submitReviews);

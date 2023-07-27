@@ -6,7 +6,7 @@ const { BadRequest, NotFoundError } = require("../errors");
 
 const getAllReviews = async (req, res, next) => {
   try {
-    const reviews = await Review.find({ createdBy: req.user.id }); 
+    const reviews = await Review.find(); 
     res.status(StatusCodes.OK).json({ reviews });
   } catch (err) { 
     next(err);
@@ -16,10 +16,9 @@ const getAllReviews = async (req, res, next) => {
 const getReview = async (req, res, next) => {
   try {
     const {
-      user: { userId },
       params: { id: reviewId },
     } = req;
-    const review = await Review.findOne({ id: reviewId, createdBy: userId });
+    const review = await Review.findOne({ id: reviewId });
     if (!review) {
       throw new NotFoundError(`No review with id ${reviewId}`);
     }

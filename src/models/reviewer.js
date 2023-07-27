@@ -5,14 +5,23 @@ require("dotenv").config();
 const Schema = require('mongoose')
 
 const reviewerSchema = mongoose.Schema({
+  article: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Article",
+  },
   _id: Schema.Types.ObjectId,
   title: String,
-  email: String, 
+  email: String,
   name: String,
   password: String,
   department: String,
   role: String,
   fieldOfResearch: String,
+  review: {
+    type: [mongoose.Schema.Types.ObjectId],
+    required: true,
+    ref: "Review",
+  },
 });
 
 reviewerSchema.pre("save", async function (next) {
