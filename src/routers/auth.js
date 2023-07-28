@@ -25,7 +25,7 @@ router.get('/authorprofile', auth, getAuthorProfile)
 router.get('/reviewerprofile', auth, getReviewerProfile);
 router.get('/editorprofile', auth, editor.getEditorProfile)
 // router.get("/reviewers/:reviewerId/article", auth, assignedPapers);
-router.get("/:roles", auth, getRoles);
+// router.get("/:roles", auth, getRoles);
 router.get("/:fieldOfResearch", auth, requireEditor, getReviewersByField);
 router.get("/:id", auth, requireEditor, getUsersById);
 

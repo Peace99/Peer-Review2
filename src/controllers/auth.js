@@ -152,45 +152,45 @@ const getEditorProfile = async (req, res,) => {
 }
 
 
-const getRoles = async (req, res, next) => {
-  try {
-    const  role  = req.params.role;
-    console.log(role)
+// const getRoles = async (req, res, next) => {
+//   try {
+//     const  role  = req.params.role;
+//     console.log(role)
 
-    if (!role || (role !== "author" && role !== "reviewer")) {
-      return res.status(StatusCodes.BAD_REQUEST).json({
-        error: "Invalid role. Accepted roles are: author, reviewer",
-      });
-    }
+//     if (!role || (role !== "author" && role !== "reviewer")) {
+//       return res.status(StatusCodes.BAD_REQUEST).json({
+//         error: "Invalid role. Accepted roles are: author, reviewer",
+//       });
+//     }
 
-    const { editorRole } = req.user;
-    console.log(editorRole);
-    if (editorRole !== "editor") {
-      return res
-        .status(StatusCodes.UNAUTHORIZED)
-        .json({ error: "Only editors can access this endpoint" });
-    }
+//     const { editorRole } = req.user;
+//     console.log(editorRole);
+//     if (editorRole !== "editor") {
+//       return res
+//         .status(StatusCodes.UNAUTHORIZED)
+//         .json({ error: "Only editors can access this endpoint" });
+//     }
 
-    let users;
-    if (role === "author") {
-      users = await author.find();
-    } else if (role === "reviewer") {
-      users = await reviewer.find();
-    }
+//     let users;
+//     if (role === "author") {
+//       users = await author.find();
+//     } else if (role === "reviewer") {
+//       users = await reviewer.find();
+//     }
 
-    if (!users || users.length === 0) {
-      return res
-        .status(StatusCodes.NOT_FOUND)
-        .json({ message: "No users found for the provided role" });
-    }
-    res.json({ role, users });
-  } catch (error) {
-    console.log(error);
-    res
-      .status(500)
-      .json({ error: "An error occurred while fetching users by role" });
-  }
-};
+//     if (!users || users.length === 0) {
+//       return res
+//         .status(StatusCodes.NOT_FOUND)
+//         .json({ message: "No users found for the provided role" });
+//     }
+//     res.json({ role, users });
+//   } catch (error) {
+//     console.log(error);
+//     res
+//       .status(500)
+//       .json({ error: "An error occurred while fetching users by role" });
+//   }
+// };
 
 const isValidUserId = (userId) => {
   const userIdRegex = /^[0-9a-fA-F]{24}$/;
@@ -252,4 +252,4 @@ const getUsersById = async (req, res, next) => {
 
 
 
-module.exports = {signUp, login, getAuthorProfile, getEditorProfile, getReviewerProfile, getRoles, getUsersById, getReviewersByField }
+module.exports = {signUp, login, getAuthorProfile, getEditorProfile, getReviewerProfile, getUsersById, getReviewersByField }
