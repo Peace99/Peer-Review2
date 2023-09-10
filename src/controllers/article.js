@@ -89,10 +89,11 @@ const assign = async (req, res) => {
 
     // for (const reviewerId of reviewerIds) {
     //   const reviewer = await Reviewers.findById(reviewerId);
-    //   if (reviewer) {
-    //     reviewer.papersAssigned.push(article._id);
-    //     await reviewer.save();
+    //   if (!reviewer) {
+    //     continue;
     //   }
+    //   reviewer.article.push(article._id);
+    //   await reviewer.save();
     // }
     res.json({ message: "Reviewers assigned successfully" });
   } catch (err) {
@@ -126,27 +127,27 @@ res.json({ message: "Paper rejected and email sent to the author" });
 }
 
 //get papers assigned to reviewers
-// const assignedPapers = async (req, res) => {
-//   try {
-//     const reviewerId = req.params.reviewerId;
+const assignedPapers = async (req, res) => {
+  try {
+    const reviewerId = req.params.reviewerId;
 
-//     // Find the reviewer by their ID
-//     const reviewer = await Reviewer.findById(reviewerId);
+    // Find the reviewer by their ID
+    const reviewer = await Reviewers.findById(reviewerId);
 
-//     if (!reviewer) {
-//       return res.status(404).json({ message: "Reviewer not found" });
-//     }
+    if (!reviewer) {
+      return res.status(404).json({ message: "Reviewer not found" });
+    }
 
-//     // Find the papers assigned to the reviewer
-//     const assignedPaperIds = reviewer.papersAssigned;
-//     const assignedPapers = await Articles.find({ _id: { $in: assignedPaperIds } });
+    // Find the papers assigned to the reviewer
+    const assignedPaperIds = reviewer.article;
+    const assignedPapers = await Articles.find({ _id: { $in: assignedPaperIds } });
 
-//     res.json({ assignedPapers });
-//   } catch (err) {
-//     console.error("Error fetching papers assigned to reviewer:", err);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// }
+    res.json({ assignedPapers });
+  } catch (err) {
+    console.error("Error fetching papers assigned to reviewer:", err);
+    res.status(500).json({ message: "Internal server error" });
+  }
+}
 
 const submitArticle = async (req, res) => {
   try {
@@ -258,6 +259,6 @@ const articleStatusCountById = async (req, res) => {
 
 
 
-module.exports = {getAllArticles, getArticle, submitArticle, articleStatus, assign,
+module.exports = {getAllArticles, getArticle, submitArticle, articleStatus, assign, assignedPapers,
    declineArticle, articleStatusCount, articleStatusCountById, getArticlesByUserId
 };
